@@ -16,7 +16,12 @@ Componente reusable para el procesamiento de transacciones **PayIn**, construido
 │       ├── er.md
 │       └── domain.md
 ├── backend/                   # Aplicación Laravel (API REST v1)
-│   └── src/                   # Código hexagonal (namespace Src\)
+│   ├── src/                   # Código hexagonal (namespace Src\)
+│   └── Dockerfile             # Imagen del backend (multi-stage)
+├── docker-compose.yml         # Stack: MariaDB + API
+├── run.sh                     # Lanzador de un comando (build + up)
+├── DOCKER.md                  # Guía de Docker
+├── .env.example               # Variables de orquestación (Compose)
 ├── .github/workflows/ci.yml   # Pipeline CI (Pint · PHPStan · Pest)
 └── README.md
 ```
@@ -107,20 +112,33 @@ Los UUID de ejemplo provienen del `PayInReferenceSeeder`. El adaptador `provider
 
 `CREATED → VALIDATED → PROCESSED`, con `FAILED` como estado terminal de error. Cada transición se registra en `pay_in_status_history` (ver [ADR-007](docs/ADR.md#adr-007---máquina-de-estados-de-payin)).
 
-## Requisitos
+## Puesta en marcha con Docker (recomendado)
 
-- PHP 8.4+
-- Composer 2.x
+Un solo comando construye y levanta el stack (MariaDB + API). Migraciones y
+datos de referencia corren automáticamente en el primer arranque.
 
-## Puesta en marcha (backend)
+```bash
+./run.sh          # build + up, espera a que la API responda
+./run.sh logs     # sigue los logs
+./run.sh down     # detiene y elimina los contenedores
+```
+
+API en `http://localhost:8000/api/v1` (health check en `/up`). Detalles y
+configuración en [`DOCKER.md`](DOCKER.md).
+
+## Puesta en marcha manual (sin Docker)
+
+Requisitos: **PHP 8.4+** y **Composer 2.x**.
 
 ```bash
 cd backend
-cp .env.example .env          # ya creado por el instalador
+cp .env.example .env
 php artisan key:generate
 php artisan migrate --seed    # crea tablas + datos de referencia
 php artisan serve             # http://localhost:8000
 ```
+
+Por defecto usa SQLite; ajusta las variables `DB_*` en `.env` para otra base.
 
 El esquema relacional se define en las migraciones (`backend/database/migrations`),
 que son la única fuente de verdad. Para obtener un volcado SQL a partir de ellas:
@@ -131,7 +149,7 @@ php artisan schema:dump       # genera database/schema/<conexión>-schema.sql
 
 ## Testing y calidad
 
-Cobertura objetivo: **80%** (verificada en CI).
+Cobertura objetivo: **80%** (exigida como gate en CI).
 
 ```bash
 cd backend
