@@ -167,4 +167,5 @@ Herramientas: **Pest**, **Laravel Pint**, **PHPStan/Larastan** y **GitHub Action
 - [ADR](docs/ADR.md) — decisiones arquitectónicas.
 - [Diagramas](docs/diagrams/) — arquitectura, secuencia, ER y dominio.
 - Esquema relacional — definido en `backend/database/migrations` (generable con `php artisan schema:dump`).
-- [Postman](docs/postman/) — colección de la API.
+- [Postman](docs/postman/) — colección de la API (Collection v2.1, importable directo).
+- [OpenAPI](docs/openapi.json) — spec OpenAPI 3.1 generada con [Scramble](https://scramble.dedoc.co/) (`composer openapi`). Con el backend en marcha, Swagger UI en `/docs/api` y el documento en `/docs/api.json`.

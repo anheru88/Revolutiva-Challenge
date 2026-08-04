@@ -1,0 +1,233 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Laravel",
+        "version": "0.0.1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost/api"
+        }
+    ],
+    "paths": {
+        "/v1/pay-ins": {
+            "post": {
+                "operationId": "payIn.store",
+                "tags": [
+                    "PayIn"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreatePayInRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`PayInResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PayInResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/pay-ins/{uuid}": {
+            "get": {
+                "operationId": "payIn.show",
+                "tags": [
+                    "PayIn"
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`PayInResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PayInResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CreatePayInRequest": {
+                "type": "object",
+                "properties": {
+                    "customer_uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "account_uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "payment_method_uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "provider_code": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "amount": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{3}$",
+                        "minLength": 3,
+                        "maxLength": 3
+                    }
+                },
+                "required": [
+                    "customer_uuid",
+                    "account_uuid",
+                    "payment_method_uuid",
+                    "provider_code",
+                    "amount",
+                    "currency"
+                ],
+                "title": "CreatePayInRequest"
+            },
+            "PayInResource": {
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "customer_uuid": {
+                        "type": "string"
+                    },
+                    "account_uuid": {
+                        "type": "string"
+                    },
+                    "payment_method_uuid": {
+                        "type": "string"
+                    },
+                    "provider_code": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "integer"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "provider_request": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {}
+                    },
+                    "provider_response": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {}
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "customer_uuid",
+                    "account_uuid",
+                    "payment_method_uuid",
+                    "provider_code",
+                    "amount",
+                    "currency",
+                    "status",
+                    "provider_request",
+                    "provider_response",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "PayInResource"
+            }
+        },
+        "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
