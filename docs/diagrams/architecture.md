@@ -9,7 +9,7 @@ flowchart LR
     end
 
     subgraph APP["Application"]
-        UC["Casos de uso<br/>CreatePayIn · GetPayIn"]
+        UC["Casos de uso<br/>CreatePayIn · ProcessPayIn · GetPayIn"]
         PORTS["Puertos (interfaces)<br/>PayInRepositoryPort<br/>PaymentProviderPort"]
         RES["ProviderResolver<br/>(Factory + Strategy)"]
         DTO["DTOs"]
@@ -17,6 +17,7 @@ flowchart LR
 
     subgraph DOM["Domain (PHP puro)"]
         ENT["Entidades<br/>PayIn · Customer · Account<br/>PaymentMethod · PaymentProvider"]
+        FAC["PayInFactory<br/>(Factory del agregado)"]
         VO["Value Objects<br/>Money · Email · UUID"]
         ST["PayInStatus<br/>CREATED/VALIDATED/PROCESSED/FAILED"]
     end
@@ -25,12 +26,15 @@ flowchart LR
         REPO["PayInRepository<br/>(Eloquent + Mappers)"]
         ADPA["ProviderAdapter A<br/>(simulado)"]
         ADPB["ProviderAdapter B<br/>(simulado)"]
+        JOB["ProcessPayInJob<br/>(cola — camino asíncrono, ADR-004)"]
     end
 
     SHARED["Shared<br/>VO base · excepciones · contratos comunes"]
 
     API --> UC
+    JOB --> UC
     UC --> ENT
+    UC --> FAC
     UC --> PORTS
     UC --> RES
     RES --> ADPA
@@ -46,10 +50,12 @@ flowchart LR
     classDef app fill:#dae8fc,stroke:#6c8ebf;
     classDef infra fill:#ffe6cc,stroke:#d79b00;
     classDef shared fill:#f8cecc,stroke:#b85450;
-    class ENT,VO,ST domain;
+    class ENT,FAC,VO,ST domain;
     class UC,PORTS,RES,DTO app;
-    class API,REPO,ADPA,ADPB infra;
+    class API,REPO,ADPA,ADPB,JOB infra;
     class SHARED shared;
 ```
 
 **Regla de dependencias:** las flechas de infraestructura apuntan *hacia adentro*. `Infrastructure → Application → Domain`. El dominio no conoce a nadie fuera de sí mismo.
+
+**Empaquetado:** todo lo anterior vive en `backend/src`, que es un paquete Composer (`revolutiva/payin`) con sus migraciones y sus pruebas dentro — ver [ADR-011](../ADR.md#adr-011---el-módulo-es-un-paquete-composer).

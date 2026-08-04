@@ -8,9 +8,11 @@ Componente reusable para el procesamiento de transacciones **PayIn**, construido
 .
 ├── docs/
 │   ├── PRD.md                 # Product Requirements Document
-│   ├── ADR.md                 # Architecture Decision Records (ADR-001..009)
+│   ├── ADR.md                 # Architecture Decision Records (ADR-001..011)
 │   ├── schema.sql             # Script SQL del modelo normalizado (dump)
 │   ├── openapi.json           # Spec OpenAPI 3.1 (Scramble)
+│   ├── tests.svg              # Salida real de la suite (Pest)
+│   ├── coverage.svg           # Salida real de la cobertura (Pest)
 │   ├── postman/               # Colección Postman
 │   └── diagrams/              # Diagramas en Markdown (Mermaid)
 │       ├── architecture.md
@@ -38,22 +40,23 @@ backend/src/
 │   ├── Domain/               # Entidades, VOs, enum de estados, puertos de repositorio
 │   │   ├── Entity/           #   PayIn (aggregate root), Customer, Account, ...
 │   │   ├── Enum/             #   PayInStatus (+ transiciones válidas)
+│   │   ├── Factory/          #   PayInFactory (ensamblado del agregado)
 │   │   ├── ValueObject/      #   StatusTransition
 │   │   ├── Repository/       #   Puertos (interfaces)
 │   │   └── Exception/
 │   ├── Application/          # Casos de uso, comandos, DTOs de lectura, ProviderResolver
-│   │   ├── UseCase/          #   CreatePayInHandler, GetPayInHandler
+│   │   ├── UseCase/          #   CreatePayInHandler, ProcessPayInHandler, GetPayInHandler
 │   │   ├── Command/ Query/   #   CreatePayInCommand, PayInResponse, puerto de lectura
 │   │   └── Provider/         #   PaymentProviderPort, ProviderResolver, ProviderResult
 │   ├── Infrastructure/       # Adaptadores concretos
 │   │   ├── Http/             #   Controller, FormRequest, Resource
 │   │   ├── Persistence/      #   Modelos Eloquent, repositorios, mappers, Migrations/
 │   │   ├── Provider/         #   Adaptadores de proveedor (simulados)
-│   │   └── Laravel/          #   PayInServiceProvider (bindings + loadMigrationsFrom)
+│   │   └── Laravel/          #   PayInServiceProvider, ProcessPayInJob (cola)
 │   └── Tests/                # Pruebas del módulo (Unit/ y Feature/)
 ├── Shared/                   # VOs reutilizables (Money, Email, Uuid), excepciones, TransactionManager
 │   ├── Infrastructure/
-│   │   ├── Persistence/      #   Migrations/ de tablas de infraestructura (users, cache, jobs)
+│   │   ├── Persistence/      #   Migrations/ de tablas de infraestructura (sessions, cache, jobs)
 │   │   └── Laravel/          #   SharedServiceProvider, LaravelTransactionManager
 │   └── Tests/                # TestCase base + pruebas de los VOs compartidos
 └── composer.json             # `revolutiva/payin`: paquete Composer del módulo
@@ -62,6 +65,10 @@ backend/src/
 **`src/` es un paquete Composer independiente** (`revolutiva/payin`), instalado por la app vía repositorio `path` (symlink en `vendor/revolutiva/payin`). Declara sus propias dependencias y registra sus ServiceProviders por *package discovery*, no desde `bootstrap/providers.php`.
 
 **Migraciones y pruebas viven dentro del módulo**, no en `database/migrations` ni en `tests/`: cada módulo registra sus migraciones desde su propio ServiceProvider (`loadMigrationsFrom`). El único archivo de pruebas fuera de `src/` es `backend/tests/Pest.php`, el bootstrap que Pest exige en su directorio por defecto; las pruebas en sí están en `src/<Modulo>/Tests`.
+
+**Sin scaffolding de más:** el componente no incluye frontend, autenticación ni modelo `User` (PRD §3). Se retiraron Vite/Tailwind, las vistas, `routes/web.php` y las tablas `users`/`password_reset_tokens`; queda `sessions` porque el stack de Docker usa `SESSION_DRIVER=database`.
+
+**Procesamiento síncrono, listo para cola:** el paso de proveedor es un caso de uso propio (`ProcessPayInHandler`) que recibe un UUID y recarga el agregado. `CreatePayInHandler` lo llama en línea; `ProcessPayInJob` es el mismo caso de uso despachado a una cola, así que pasar a asíncrono es cambiar una línea ([ADR-004](docs/ADR.md#adr-004---procesamiento-síncrono-con-diseño-listo-para-asíncrono)).
 
 **Regla de dependencias:** `Infrastructure → Application → Domain`. Los VOs comunes viven en `Shared`.
 
@@ -176,6 +183,8 @@ Resumen — el detalle y la justificación de cada una está en [`docs/ADR.md`](
 - **Auditoría** de request/response del proveedor + historial de estados ([ADR-006](docs/ADR.md#adr-006---auditoría-de-proveedor-e-historial-de-estados)).
 - **Máquina de estados** validada en el dominio ([ADR-007](docs/ADR.md#adr-007---máquina-de-estados-de-payin)).
 - **API versionada y snake_case** ([ADR-008](docs/ADR.md#adr-008---api-rest-versionada-y-snake_case)).
+- **Factory del agregado** para concentrar su ensamblado en el dominio ([ADR-010](docs/ADR.md#adr-010---factory-del-agregado-payin)).
+- **El módulo es un paquete Composer**, con sus migraciones y pruebas dentro ([ADR-011](docs/ADR.md#adr-011---el-módulo-es-un-paquete-composer)).
 
 ## Patrones de diseño aplicados
 
@@ -206,7 +215,7 @@ Modelo: pipeline de validación por PR (lint → análisis estático → pruebas
 
 Cómo se garantiza y con qué métodos/herramientas:
 
-- **Pruebas** (Pest): unitarias de dominio (PHP puro, sin arrancar el framework) + feature de API y repositorio. Cobertura **95.2%** (gate del 80% exigido en CI).
+- **Pruebas** (Pest): unitarias de dominio (PHP puro, sin arrancar el framework) + feature de API y repositorio. Cobertura **96%** (gate del 80% exigido en CI).
 - **Análisis estático**: PHPStan/Larastan **nivel 6**.
 - **Estilo consistente**: Laravel Pint.
 - **Diseño testeable**: dominio desacoplado → pruebas rápidas sin base de datos; puertos fácilmente sustituibles por dobles de prueba.
@@ -224,7 +233,7 @@ composer check       # lint + analyse + test
 ![Salida de composer test](docs/tests.svg)
 
 <details>
-<summary><b>Cobertura por archivo</b> — <code>pest --coverage</code> (total 95.2%)</summary>
+<summary><b>Cobertura por archivo</b> — <code>pest --coverage</code> (total 96.0%)</summary>
 
 ![Cobertura por archivo](docs/coverage.svg)
 
@@ -243,7 +252,7 @@ Detalle en [PRD §17](docs/PRD.md). En resumen: cambios futuros en los contratos
 ## Documentación
 
 - [PRD](docs/PRD.md) — requisitos del producto, suposiciones y riesgos.
-- [ADR](docs/ADR.md) — decisiones arquitectónicas (ADR-001..009).
+- [ADR](docs/ADR.md) — decisiones arquitectónicas (ADR-001..011).
 - [Diagramas](docs/diagrams/) — componente/arquitectura, secuencia, ER y dominio.
 - [schema.sql](docs/schema.sql) — script SQL del modelo normalizado, generado con un dump del esquema producido por las migraciones (`mariadb-dump --no-data`). Fuente de verdad: las migraciones dentro de `backend/src/*/Infrastructure/Persistence/Migrations`.
 - [Postman](docs/postman/) — colección de la API (Collection v2.1, importable directo).

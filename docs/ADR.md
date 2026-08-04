@@ -11,6 +11,8 @@ Registro de decisiones arquitectónicas del componente **PayIn Platform**.
 - [ADR-007 · Máquina de estados de PayIn](#adr-007---máquina-de-estados-de-payin)
 - [ADR-008 · API REST versionada y snake_case](#adr-008---api-rest-versionada-y-snake_case)
 - [ADR-009 · Operaciones transaccionales](#adr-009---operaciones-transaccionales)
+- [ADR-010 · Factory del agregado PayIn](#adr-010---factory-del-agregado-payin)
+- [ADR-011 · El módulo es un paquete Composer](#adr-011---el-módulo-es-un-paquete-composer)
 
 ---
 
@@ -148,7 +150,16 @@ El alcance actual contempla procesamiento síncrono, pero se anticipa la necesid
 
 ## Decisión
 
-El caso de uso `ProcessPayIn` se ejecutará síncronamente detrás de un puerto de aplicación, encapsulando la lógica de forma que pueda envolverse en un Job (cola) sin modificar el dominio.
+El paso de proveedor vive en su propio caso de uso, `ProcessPayInHandler`, separado de `CreatePayInHandler`. Recibe un **UUID**, no un objeto en memoria: recarga el agregado desde el repositorio y no comparte estado con quien lo invoca, que es justo lo que exige un worker de cola.
+
+Hoy `CreatePayInHandler` lo llama en línea (síncrono). `ProcessPayInJob` es el adaptador de cola del mismo caso de uso, y pasar a asíncrono es sustituir una línea del caso de uso:
+
+```php
+$this->processPayIn->handle($payIn->uuid());              // síncrono (actual)
+ProcessPayInJob::dispatch($payIn->uuid()->value());       // asíncrono
+```
+
+Ni el dominio ni la capa de aplicación cambian; solo cambia quién ejecuta el caso de uso.
 
 ## Justificación
 
@@ -164,6 +175,7 @@ Mantener la lógica encapsulada tras un puerto permite cambiar la estrategia de 
 ### Negativas
 
 - En modo síncrono, la latencia del proveedor impacta el tiempo de respuesta del request.
+- Al recargar el agregado por UUID se paga una lectura extra que el camino puramente en memoria no necesitaría; es el precio de que ambos modos compartan un único camino de código.
 
 ---
 
@@ -318,3 +330,66 @@ Persistir antes de enviar al proveedor garantiza que siempre exista un registro 
 ### Negativas
 
 - Debe evitarse mantener llamadas externas lentas (proveedor) dentro de la transacción de base de datos.
+
+---
+
+# ADR-010 - Factory del agregado PayIn
+
+## Estado
+
+Accepted
+
+## Contexto
+
+El caso de uso de creación resolvía las entidades por UUID y, acto seguido, ensamblaba el agregado a mano: generaba el UUID público y traducía cada entidad a su identificador interno. Mezclaba orquestación con construcción, y cualquier cambio en la forma del agregado obligaba a tocar el caso de uso.
+
+## Decisión
+
+`PayInFactory`, en el dominio, concentra el ensamblado del agregado a partir de las entidades ya resueltas. El caso de uso pide la pieza construida y sigue con la orquestación.
+
+## Justificación
+
+La factory conoce las reglas de construcción (UUID público nuevo, identificadores internos para las relaciones, estado inicial `CREATED`) y las mantiene en un único punto del dominio. Completa el catálogo de patrones del PRD §11 junto a Repository, Strategy, Adapter, DTO, Value Objects e inyección de dependencias.
+
+## Consecuencias
+
+### Positivas
+
+- Construcción del agregado en un solo sitio, verificable con pruebas unitarias sin framework.
+- El caso de uso queda más corto y centrado en orquestar.
+
+### Negativas
+
+- Una indirección más entre el caso de uso y el agregado.
+
+---
+
+# ADR-011 - El módulo es un paquete Composer
+
+## Estado
+
+Accepted
+
+## Contexto
+
+El dominio ya era independiente de Laravel (ADR-002), pero el módulo seguía repartido por el esqueleto del framework: las migraciones en `database/migrations`, las pruebas en `tests/`. Reutilizar el componente en otra aplicación significaba ir a recoger piezas por varios directorios.
+
+## Decisión
+
+`src/` es un paquete Composer propio, `revolutiva/payin`, que la aplicación instala mediante un repositorio de tipo `path` (symlink en `vendor/`). El paquete declara sus dependencias, registra sus ServiceProviders por *package discovery*, y guarda dentro sus **migraciones** (`src/<Modulo>/Infrastructure/Persistence/Migrations`, cargadas con `loadMigrationsFrom`) y sus **pruebas** (`src/<Modulo>/Tests`).
+
+## Justificación
+
+Un módulo auto-contenido se mueve o se extrae a su propio repositorio sin arrastrar la estructura de directorios de Laravel, y sus límites dejan de depender de una convención: los declara el `composer.json` del paquete.
+
+## Consecuencias
+
+### Positivas
+
+- El componente es reusable de verdad: se copia o se publica el paquete y funciona.
+- Las migraciones y las pruebas viajan con el código que describen.
+
+### Negativas
+
+- `composer install` necesita que `src/` exista antes de resolver dependencias (contemplado en el Dockerfile).
+- Queda un único archivo fuera de `src/`: `tests/Pest.php`, el bootstrap que Pest exige en su directorio de pruebas por defecto.
