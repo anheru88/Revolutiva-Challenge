@@ -1,0 +1,56 @@
+<mxfile host="app.diagrams.net" version="24.0.0" type="device">
+  <diagram name="Hexagonal Architecture" id="arch-1">
+    <mxGraphModel dx="1100" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="PayIn — Arquitectura Hexagonal (Ports &amp; Adapters)" style="text;html=1;fontSize=16;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="500" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Domain core -->
+        <mxCell id="domain" value="Domain&#10;&#10;Entidades: PayIn, Customer, Account,&#10;PaymentMethod, PaymentProvider&#10;VO: Money, Email, UUID&#10;Estados: CREATED/VALIDATED/PROCESSED/FAILED" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="300" width="260" height="170" as="geometry" />
+        </mxCell>
+
+        <!-- Application ring -->
+        <mxCell id="app" value="Application&#10;Casos de uso: CreatePayIn, GetPayIn&#10;Puertos: PaymentProviderPort, PayInRepositoryPort&#10;DTOs · ProviderResolver" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="200" width="400" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Driving adapter -->
+        <mxCell id="api" value="Infrastructure — Driving (Inbound)&#10;API REST v1&#10;POST /api/v1/pay-ins&#10;GET /api/v1/pay-ins/{uuid}&#10;Controllers · FormRequests" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="320" width="230" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Driven adapters -->
+        <mxCell id="persistence" value="Infrastructure — Driven (Outbound)&#10;Persistencia Eloquent&#10;PayInRepository · Mappers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=center;" vertex="1" parent="1">
+          <mxGeometry x="810" y="230" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="providers" value="Infrastructure — Driven (Outbound)&#10;Provider Adapters&#10;ProviderA · ProviderB (simulados)&#10;implements PaymentProviderPort" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=center;" vertex="1" parent="1">
+          <mxGeometry x="810" y="360" width="220" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Shared -->
+        <mxCell id="shared" value="Shared (VO base, excepciones, contratos comunes)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=center;" vertex="1" parent="1">
+          <mxGeometry x="360" y="520" width="400" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- edges -->
+        <mxCell id="e1" style="endArrow=block;html=1;" edge="1" parent="1" source="api" target="app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;" edge="1" parent="1" source="app" target="domain">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="implements port" style="endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="persistence" target="app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="implements port" style="endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="providers" target="app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

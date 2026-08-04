@@ -1,0 +1,72 @@
+<mxfile host="app.diagrams.net" version="24.0.0" type="device">
+  <diagram name="ER Model" id="er-1">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Modelo Entidad-Relación — PayIn Platform" style="text;html=1;fontSize=16;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="10" width="500" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- customers -->
+        <mxCell id="customers" value="customers" style="shape=table;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;collapsible=0;" vertex="1" parent="1"><mxGeometry x="60" y="80" width="220" height="110" as="geometry"/></mxCell>
+        <mxCell id="c_id" value="PK  id (bigint)" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="customers"><mxGeometry y="26" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="c_uuid" value="UQ  uuid" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="customers"><mxGeometry y="47" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="c_name" value="name" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="customers"><mxGeometry y="68" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="c_email" value="email" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="customers"><mxGeometry y="89" width="220" height="21" as="geometry"/></mxCell>
+
+        <!-- accounts -->
+        <mxCell id="accounts" value="accounts" style="shape=table;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;collapsible=0;" vertex="1" parent="1"><mxGeometry x="60" y="280" width="220" height="110" as="geometry"/></mxCell>
+        <mxCell id="a_id" value="PK  id (bigint)" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="accounts"><mxGeometry y="26" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="a_uuid" value="UQ  uuid" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="accounts"><mxGeometry y="47" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="a_cust" value="FK  customer_id" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="accounts"><mxGeometry y="68" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="a_num" value="account_number" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="accounts"><mxGeometry y="89" width="220" height="21" as="geometry"/></mxCell>
+
+        <!-- payment_methods -->
+        <mxCell id="pm" value="payment_methods" style="shape=table;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;collapsible=0;" vertex="1" parent="1"><mxGeometry x="60" y="480" width="220" height="110" as="geometry"/></mxCell>
+        <mxCell id="pm_id" value="PK  id (bigint)" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="pm"><mxGeometry y="26" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="pm_uuid" value="UQ  uuid" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="pm"><mxGeometry y="47" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="pm_acc" value="FK  account_id" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="pm"><mxGeometry y="68" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="pm_type" value="type" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="pm"><mxGeometry y="89" width="220" height="21" as="geometry"/></mxCell>
+
+        <!-- payment_providers -->
+        <mxCell id="pp" value="payment_providers" style="shape=table;html=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;collapsible=0;" vertex="1" parent="1"><mxGeometry x="1020" y="480" width="220" height="89" as="geometry"/></mxCell>
+        <mxCell id="pp_id" value="PK  id (bigint)" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="pp"><mxGeometry y="26" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="pp_code" value="UQ  code" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="pp"><mxGeometry y="47" width="220" height="21" as="geometry"/></mxCell>
+        <mxCell id="pp_name" value="name" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="pp"><mxGeometry y="68" width="220" height="21" as="geometry"/></mxCell>
+
+        <!-- pay_ins -->
+        <mxCell id="payins" value="pay_ins" style="shape=table;html=1;startSize=26;fillColor=#ffe6cc;strokeColor=#d79b00;collapsible=0;" vertex="1" parent="1"><mxGeometry x="500" y="250" width="260" height="320" as="geometry"/></mxCell>
+        <mxCell id="pi_id" value="PK  id (bigint)" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="26" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_uuid" value="UQ  uuid" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="47" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_cust" value="FK  customer_id" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="68" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_acc" value="FK  account_id" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="89" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_pm" value="FK  payment_method_id" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="110" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_pp" value="FK  payment_provider_id" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="131" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_amount" value="amount" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="152" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_curr" value="currency" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="173" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_status" value="status" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="194" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_preq" value="provider_request (json)" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="215" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_pres" value="provider_response (json)" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="236" width="260" height="21" as="geometry"/></mxCell>
+        <mxCell id="pi_ts" value="created_at / updated_at" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="payins"><mxGeometry y="257" width="260" height="21" as="geometry"/></mxCell>
+
+        <!-- history -->
+        <mxCell id="hist" value="pay_in_status_history" style="shape=table;html=1;startSize=26;fillColor=#f8cecc;strokeColor=#b85450;collapsible=0;" vertex="1" parent="1"><mxGeometry x="1020" y="250" width="240" height="110" as="geometry"/></mxCell>
+        <mxCell id="h_id" value="PK  id (bigint)" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="hist"><mxGeometry y="26" width="240" height="21" as="geometry"/></mxCell>
+        <mxCell id="h_pi" value="FK  pay_in_id" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="hist"><mxGeometry y="47" width="240" height="21" as="geometry"/></mxCell>
+        <mxCell id="h_prev" value="previous_status" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="hist"><mxGeometry y="68" width="240" height="21" as="geometry"/></mxCell>
+        <mxCell id="h_curr" value="current_status / created_at" style="text;html=1;align=left;spacingLeft=6;" vertex="1" parent="hist"><mxGeometry y="89" width="240" height="21" as="geometry"/></mxCell>
+
+        <!-- relations -->
+        <mxCell id="r1" value="1 : N" style="endArrow=ERmany;startArrow=ERone;html=1;" edge="1" parent="1" source="customers" target="accounts"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r2" value="1 : N" style="endArrow=ERmany;startArrow=ERone;html=1;" edge="1" parent="1" source="accounts" target="pm"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r3" value="1 : N" style="endArrow=ERmany;startArrow=ERone;html=1;" edge="1" parent="1" source="customers" target="payins"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r4" value="1 : N" style="endArrow=ERmany;startArrow=ERone;html=1;" edge="1" parent="1" source="accounts" target="payins"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r5" value="1 : N" style="endArrow=ERmany;startArrow=ERone;html=1;" edge="1" parent="1" source="pm" target="payins"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r6" value="1 : N" style="endArrow=ERmany;startArrow=ERone;html=1;" edge="1" parent="1" source="pp" target="payins"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="r7" value="1 : N" style="endArrow=ERmany;startArrow=ERone;html=1;" edge="1" parent="1" source="payins" target="hist"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
