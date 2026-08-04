@@ -1,0 +1,97 @@
+{
+    "info": {
+        "name": "PayIn Platform API",
+        "description": "Colección para el componente PayIn (API REST v1). Usa datos del PayInReferenceSeeder.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000"
+        },
+        {
+            "key": "customer_uuid",
+            "value": "11111111-1111-4111-8111-111111111111"
+        },
+        {
+            "key": "account_uuid",
+            "value": "22222222-2222-4222-8222-222222222222"
+        },
+        {
+            "key": "payment_method_uuid",
+            "value": "33333333-3333-4333-8333-333333333333"
+        },
+        {
+            "key": "pay_in_uuid",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Create PayIn (approved · provider_a)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                            "const data = pm.response.json().data;",
+                            "pm.collectionVariables.set('pay_in_uuid', data.uuid);",
+                            "pm.test('processed', () => pm.expect(data.status).to.eql('PROCESSED'));"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/v1/pay-ins",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "v1", "pay-ins"]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"customer_uuid\": \"{{customer_uuid}}\",\n    \"account_uuid\": \"{{account_uuid}}\",\n    \"payment_method_uuid\": \"{{payment_method_uuid}}\",\n    \"provider_code\": \"provider_a\",\n    \"amount\": 15000,\n    \"currency\": \"USD\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Create PayIn (declined · provider_b over limit)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/v1/pay-ins",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "v1", "pay-ins"]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"customer_uuid\": \"{{customer_uuid}}\",\n    \"account_uuid\": \"{{account_uuid}}\",\n    \"payment_method_uuid\": \"{{payment_method_uuid}}\",\n    \"provider_code\": \"provider_b\",\n    \"amount\": 2000000,\n    \"currency\": \"USD\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Get PayIn by uuid",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/v1/pay-ins/{{pay_in_uuid}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "v1", "pay-ins", "{{pay_in_uuid}}"]
+                }
+            }
+        }
+    ]
+}
