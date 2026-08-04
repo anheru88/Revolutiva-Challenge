@@ -1,0 +1,19 @@
+# Override de DESARROLLO — Compose lo fusiona automáticamente con
+# docker-compose.yml en `docker compose up`.
+#
+# Monta el código fuente como volumen para que los cambios se reflejen sin
+# reconstruir la imagen. `vendor` y `bootstrap/cache` se conservan desde la
+# imagen (volúmenes anónimos) para no pisarlos con los del host.
+#
+# Para levantar el modo producción (imagen inmutable, sin bind mount):
+#   docker compose -f docker-compose.yml up -d --build
+
+services:
+  backend:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/bootstrap/cache

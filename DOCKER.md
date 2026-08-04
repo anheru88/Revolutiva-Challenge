@@ -27,7 +27,7 @@ Otros subcomandos:
 
 | Servicio  | Imagen / build                      | Puerto (host) | Rol |
 |-----------|-------------------------------------|---------------|-----|
-| `db`      | `mariadb:11`                        | `3306`        | Base de datos, datos en un volumen con nombre |
+| `db`      | `mariadb:11`                        | `3307`        | Base de datos, datos en un volumen con nombre |
 | `backend` | `backend/Dockerfile` (php 8.4 cli)  | `8000`        | API de Laravel (`artisan serve`, 4 workers) |
 
 La imagen del backend es multi-stage: una etapa `composer:2` instala las
@@ -35,6 +35,26 @@ dependencias de producción (`--no-dev`) y la etapa final `php:8.4-cli-alpine`
 añade las extensiones `pdo_mysql` y `mbstring`. El `docker/entrypoint.sh` espera
 a la base de datos, aplica `migrate --force`, siembra los datos de referencia
 solo si la base está vacía y arranca el servidor.
+
+Documentación de la API (Scramble): **http://localhost:8000/docs/api** (Swagger UI)
+y **http://localhost:8000/docs/api.json** (OpenAPI 3.1).
+
+## Desarrollo vs. producción (¿por qué no reconstruir en cada cambio?)
+
+Por defecto, `docker compose up` (y `./run.sh`) fusiona
+`docker-compose.override.yml`, que **monta el código fuente como volumen**
+(`./backend:/var/www/html`). Así, los cambios de código se reflejan al instante
+sin reconstruir la imagen; `vendor` y `bootstrap/cache` se conservan desde la
+imagen mediante volúmenes anónimos. Este modo corre con `APP_ENV=local`.
+
+Solo hace falta reconstruir (`--build`) al cambiar **dependencias**
+(`composer require`) o el propio `Dockerfile`.
+
+Para levantar el modo producción (imagen inmutable horneada, sin bind mount):
+
+```bash
+docker compose -f docker-compose.yml up -d --build
+```
 
 ## Configuración
 
