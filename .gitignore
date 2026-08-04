@@ -3,4 +3,9 @@
 /.env.tmp
 /backend/.env
 
+# Red de seguridad: la raíz no es un proyecto PHP (el backend vive en backend/)
+/vendor/
+/composer.json
+/composer.lock
+
 .DS_Store

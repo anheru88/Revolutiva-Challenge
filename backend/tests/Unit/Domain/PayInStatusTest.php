@@ -2,33 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Domain;
-
-use PHPUnit\Framework\TestCase;
 use Src\PayIn\Domain\Enum\PayInStatus;
 
-final class PayInStatusTest extends TestCase
-{
-    public function test_allowed_transitions(): void
-    {
-        $this->assertTrue(PayInStatus::CREATED->canTransitionTo(PayInStatus::VALIDATED));
-        $this->assertTrue(PayInStatus::CREATED->canTransitionTo(PayInStatus::FAILED));
-        $this->assertTrue(PayInStatus::VALIDATED->canTransitionTo(PayInStatus::PROCESSED));
-        $this->assertTrue(PayInStatus::VALIDATED->canTransitionTo(PayInStatus::FAILED));
-    }
+it('allows valid transitions', function (): void {
+    expect(PayInStatus::CREATED->canTransitionTo(PayInStatus::VALIDATED))->toBeTrue()
+        ->and(PayInStatus::CREATED->canTransitionTo(PayInStatus::FAILED))->toBeTrue()
+        ->and(PayInStatus::VALIDATED->canTransitionTo(PayInStatus::PROCESSED))->toBeTrue()
+        ->and(PayInStatus::VALIDATED->canTransitionTo(PayInStatus::FAILED))->toBeTrue();
+});
 
-    public function test_forbidden_transitions(): void
-    {
-        $this->assertFalse(PayInStatus::CREATED->canTransitionTo(PayInStatus::PROCESSED));
-        $this->assertFalse(PayInStatus::PROCESSED->canTransitionTo(PayInStatus::FAILED));
-        $this->assertFalse(PayInStatus::FAILED->canTransitionTo(PayInStatus::PROCESSED));
-    }
+it('forbids invalid transitions', function (): void {
+    expect(PayInStatus::CREATED->canTransitionTo(PayInStatus::PROCESSED))->toBeFalse()
+        ->and(PayInStatus::PROCESSED->canTransitionTo(PayInStatus::FAILED))->toBeFalse()
+        ->and(PayInStatus::FAILED->canTransitionTo(PayInStatus::PROCESSED))->toBeFalse();
+});
 
-    public function test_terminal_states(): void
-    {
-        $this->assertTrue(PayInStatus::PROCESSED->isTerminal());
-        $this->assertTrue(PayInStatus::FAILED->isTerminal());
-        $this->assertFalse(PayInStatus::CREATED->isTerminal());
-        $this->assertFalse(PayInStatus::VALIDATED->isTerminal());
-    }
-}
+it('identifies terminal states', function (): void {
+    expect(PayInStatus::PROCESSED->isTerminal())->toBeTrue()
+        ->and(PayInStatus::FAILED->isTerminal())->toBeTrue()
+        ->and(PayInStatus::CREATED->isTerminal())->toBeFalse()
+        ->and(PayInStatus::VALIDATED->isTerminal())->toBeFalse();
+});

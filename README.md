@@ -17,7 +17,7 @@ Componente reusable para el procesamiento de transacciones **PayIn**, construido
 │       └── domain.md
 ├── backend/                   # Aplicación Laravel (API REST v1)
 │   └── src/                   # Código hexagonal (namespace Src\)
-├── .github/workflows/ci.yml   # Pipeline CI (Pint · PHPStan · PHPUnit)
+├── .github/workflows/ci.yml   # Pipeline CI (Pint · PHPStan · Pest)
 └── README.md
 ```
 
@@ -135,13 +135,13 @@ Cobertura objetivo: **80%** (verificada en CI).
 
 ```bash
 cd backend
-composer test        # PHPUnit
+composer test        # Pest
 composer lint        # Laravel Pint (--test)
 composer analyse     # PHPStan / Larastan (nivel 6)
 composer check       # lint + analyse + test
 ```
 
-Herramientas: **PHPUnit**, **Laravel Pint**, **PHPStan/Larastan** y **GitHub Actions** (`.github/workflows/ci.yml`).
+Herramientas: **Pest**, **Laravel Pint**, **PHPStan/Larastan** y **GitHub Actions** (`.github/workflows/ci.yml`).
 
 ## Documentación
 

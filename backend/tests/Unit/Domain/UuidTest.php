@@ -2,36 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Domain;
-
-use PHPUnit\Framework\TestCase;
 use Src\Shared\Domain\Exception\InvalidArgumentException;
 use Src\Shared\Domain\ValueObject\Uuid;
 
-final class UuidTest extends TestCase
-{
-    public function test_random_generates_a_valid_uuid(): void
-    {
-        $uuid = Uuid::random();
+it('generates a valid random uuid', function (): void {
+    expect(Uuid::random()->value())->toMatch(
+        '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'
+    );
+});
 
-        $this->assertMatchesRegularExpression(
-            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
-            $uuid->value(),
-        );
-    }
+it('rejects an invalid uuid', function (): void {
+    new Uuid('123');
+})->throws(InvalidArgumentException::class);
 
-    public function test_it_rejects_an_invalid_uuid(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
+it('compares by value', function (): void {
+    $value = '11111111-1111-4111-8111-111111111111';
 
-        new Uuid('123');
-    }
-
-    public function test_equality_compares_the_value(): void
-    {
-        $value = '11111111-1111-4111-8111-111111111111';
-
-        $this->assertTrue((new Uuid($value))->equals(new Uuid($value)));
-        $this->assertFalse(Uuid::random()->equals(Uuid::random()));
-    }
-}
+    expect((new Uuid($value))->equals(new Uuid($value)))->toBeTrue()
+        ->and(Uuid::random()->equals(Uuid::random()))->toBeFalse();
+});

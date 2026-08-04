@@ -2,37 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Application;
-
-use PHPUnit\Framework\TestCase;
 use Src\PayIn\Application\Provider\ProviderResolver;
 use Src\PayIn\Application\Provider\UnsupportedProviderException;
 use Src\PayIn\Infrastructure\Provider\FakeProviderAAdapter;
 use Src\PayIn\Infrastructure\Provider\FakeProviderBAdapter;
 
-final class ProviderResolverTest extends TestCase
+function resolver(): ProviderResolver
 {
-    private function resolver(): ProviderResolver
-    {
-        return new ProviderResolver([
-            new FakeProviderAAdapter,
-            new FakeProviderBAdapter,
-        ]);
-    }
-
-    public function test_it_resolves_a_registered_adapter(): void
-    {
-        $resolver = $this->resolver();
-
-        $this->assertSame('provider_a', $resolver->resolve('provider_a')->code());
-        $this->assertSame('provider_b', $resolver->resolve('provider_b')->code());
-        $this->assertTrue($resolver->supports('provider_a'));
-    }
-
-    public function test_it_throws_for_an_unknown_provider(): void
-    {
-        $this->expectException(UnsupportedProviderException::class);
-
-        $this->resolver()->resolve('provider_x');
-    }
+    return new ProviderResolver([
+        new FakeProviderAAdapter,
+        new FakeProviderBAdapter,
+    ]);
 }
+
+it('resolves a registered adapter', function (): void {
+    $resolver = resolver();
+
+    expect($resolver->resolve('provider_a')->code())->toBe('provider_a')
+        ->and($resolver->resolve('provider_b')->code())->toBe('provider_b')
+        ->and($resolver->supports('provider_a'))->toBeTrue();
+});
+
+it('throws for an unknown provider', function (): void {
+    resolver()->resolve('provider_x');
+})->throws(UnsupportedProviderException::class);
