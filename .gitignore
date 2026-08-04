@@ -1,0 +1,6 @@
+# Archivos de entorno generados por ./run.sh (solo se versiona .env.example)
+/.env
+/.env.tmp
+/backend/.env
+
+.DS_Store
