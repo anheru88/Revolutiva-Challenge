@@ -9,7 +9,6 @@ Componente reusable para el procesamiento de transacciones **PayIn**, construido
 ├── docs/
 │   ├── PRD.md                 # Product Requirements Document
 │   ├── ADR.md                 # Architecture Decision Records (ADR-001..009)
-│   ├── schema.sql             # Esquema relacional de referencia (MySQL)
 │   ├── postman/               # Colección Postman
 │   └── diagrams/              # Diagramas en Markdown (Mermaid)
 │       ├── architecture.md
@@ -123,6 +122,13 @@ php artisan migrate --seed    # crea tablas + datos de referencia
 php artisan serve             # http://localhost:8000
 ```
 
+El esquema relacional se define en las migraciones (`backend/database/migrations`),
+que son la única fuente de verdad. Para obtener un volcado SQL a partir de ellas:
+
+```bash
+php artisan schema:dump       # genera database/schema/<conexión>-schema.sql
+```
+
 ## Testing y calidad
 
 Cobertura objetivo: **80%** (verificada en CI).
@@ -142,5 +148,5 @@ Herramientas: **PHPUnit**, **Laravel Pint**, **PHPStan/Larastan** y **GitHub Act
 - [PRD](docs/PRD.md) — requisitos del producto.
 - [ADR](docs/ADR.md) — decisiones arquitectónicas.
 - [Diagramas](docs/diagrams/) — arquitectura, secuencia, ER y dominio.
-- [schema.sql](docs/schema.sql) — esquema relacional de referencia.
+- Esquema relacional — definido en `backend/database/migrations` (generable con `php artisan schema:dump`).
 - [Postman](docs/postman/) — colección de la API.
