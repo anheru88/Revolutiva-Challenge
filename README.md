@@ -125,8 +125,14 @@ datos de referencia corren automáticamente en el primer arranque.
 ./run.sh down     # detiene y elimina los contenedores
 ```
 
-API en `http://localhost:8000/api/v1` (health check en `/up`). Detalles y
-configuración en [`DOCKER.md`](DOCKER.md).
+Una vez arriba:
+
+- **API:** http://localhost:8000/api/v1
+- **Documentación de la API (Swagger UI):** http://localhost:8000/docs/api
+- **OpenAPI (JSON):** http://localhost:8000/docs/api.json
+- **Health check:** http://localhost:8000/up
+
+Detalles y configuración en [`DOCKER.md`](DOCKER.md).
 
 ## Puesta en marcha manual (sin Docker)
 
