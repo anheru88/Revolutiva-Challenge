@@ -45,13 +45,23 @@ backend/src/
 │   │   ├── UseCase/          #   CreatePayInHandler, GetPayInHandler
 │   │   ├── Command/ Query/   #   CreatePayInCommand, PayInResponse, puerto de lectura
 │   │   └── Provider/         #   PaymentProviderPort, ProviderResolver, ProviderResult
-│   └── Infrastructure/       # Adaptadores concretos
-│       ├── Http/             #   Controller, FormRequest, Resource
-│       ├── Persistence/      #   Modelos Eloquent, repositorios, mappers
-│       ├── Provider/         #   Adaptadores de proveedor (simulados)
-│       └── Laravel/          #   PayInServiceProvider (bindings puerto→adaptador)
-└── Shared/                   # VOs reutilizables (Money, Email, Uuid), excepciones, TransactionManager
+│   ├── Infrastructure/       # Adaptadores concretos
+│   │   ├── Http/             #   Controller, FormRequest, Resource
+│   │   ├── Persistence/      #   Modelos Eloquent, repositorios, mappers, Migrations/
+│   │   ├── Provider/         #   Adaptadores de proveedor (simulados)
+│   │   └── Laravel/          #   PayInServiceProvider (bindings + loadMigrationsFrom)
+│   └── Tests/                # Pruebas del módulo (Unit/ y Feature/)
+├── Shared/                   # VOs reutilizables (Money, Email, Uuid), excepciones, TransactionManager
+│   ├── Infrastructure/
+│   │   ├── Persistence/      #   Migrations/ de tablas de infraestructura (users, cache, jobs)
+│   │   └── Laravel/          #   SharedServiceProvider, LaravelTransactionManager
+│   └── Tests/                # TestCase base + pruebas de los VOs compartidos
+└── composer.json             # `revolutiva/payin`: paquete Composer del módulo
 ```
+
+**`src/` es un paquete Composer independiente** (`revolutiva/payin`), instalado por la app vía repositorio `path` (symlink en `vendor/revolutiva/payin`). Declara sus propias dependencias y registra sus ServiceProviders por *package discovery*, no desde `bootstrap/providers.php`.
+
+**Migraciones y pruebas viven dentro del módulo**, no en `database/migrations` ni en `tests/`: cada módulo registra sus migraciones desde su propio ServiceProvider (`loadMigrationsFrom`). El único archivo de pruebas fuera de `src/` es `backend/tests/Pest.php`, el bootstrap que Pest exige en su directorio por defecto; las pruebas en sí están en `src/<Modulo>/Tests`.
 
 **Regla de dependencias:** `Infrastructure → Application → Domain`. Los VOs comunes viven en `Shared`.
 
@@ -148,8 +158,10 @@ php artisan serve             # http://localhost:8000
 
 Por defecto usa SQLite; ajusta las variables `DB_*` en `.env` para otra base.
 
-El esquema relacional se define en las migraciones (`backend/database/migrations`),
-que son la única fuente de verdad. El script SQL del modelo normalizado ya está
+El esquema relacional se define en las migraciones de cada módulo
+(`backend/src/PayIn/Infrastructure/Persistence/Migrations` y
+`backend/src/Shared/Infrastructure/Persistence/Migrations`), que son la única
+fuente de verdad. El script SQL del modelo normalizado ya está
 versionado en [`docs/schema.sql`](docs/schema.sql) (generado con un dump).
 
 ## Decisiones arquitectónicas
@@ -194,7 +206,7 @@ Modelo: pipeline de validación por PR (lint → análisis estático → pruebas
 
 Cómo se garantiza y con qué métodos/herramientas:
 
-- **Pruebas** (Pest): unitarias de dominio (PHP puro, sin arrancar el framework) + feature de API y repositorio. Cobertura **96%** (gate del 80% exigido en CI).
+- **Pruebas** (Pest): unitarias de dominio (PHP puro, sin arrancar el framework) + feature de API y repositorio. Cobertura **95.2%** (gate del 80% exigido en CI).
 - **Análisis estático**: PHPStan/Larastan **nivel 6**.
 - **Estilo consistente**: Laravel Pint.
 - **Diseño testeable**: dominio desacoplado → pruebas rápidas sin base de datos; puertos fácilmente sustituibles por dobles de prueba.
@@ -209,6 +221,17 @@ composer analyse     # PHPStan / Larastan (nivel 6)
 composer check       # lint + analyse + test
 ```
 
+![Salida de composer test](docs/tests.svg)
+
+<details>
+<summary><b>Cobertura por archivo</b> — <code>pest --coverage</code> (total 95.2%)</summary>
+
+![Cobertura por archivo](docs/coverage.svg)
+
+</details>
+
+Ambas imágenes son la salida real de Pest (`composer test` y `pest --coverage`).
+
 ## Suposiciones
 
 Detalle en [PRD §16](docs/PRD.md). En resumen: el proveedor se indica en el request; no hay integraciones reales (adaptadores simulados); todas las operaciones son transaccionales; sin reintentos automáticos; sin autenticación ni autorización.
@@ -222,6 +245,6 @@ Detalle en [PRD §17](docs/PRD.md). En resumen: cambios futuros en los contratos
 - [PRD](docs/PRD.md) — requisitos del producto, suposiciones y riesgos.
 - [ADR](docs/ADR.md) — decisiones arquitectónicas (ADR-001..009).
 - [Diagramas](docs/diagrams/) — componente/arquitectura, secuencia, ER y dominio.
-- [schema.sql](docs/schema.sql) — script SQL del modelo normalizado, generado con un dump del esquema producido por las migraciones (`mariadb-dump --no-data`). Fuente de verdad: `backend/database/migrations`.
+- [schema.sql](docs/schema.sql) — script SQL del modelo normalizado, generado con un dump del esquema producido por las migraciones (`mariadb-dump --no-data`). Fuente de verdad: las migraciones dentro de `backend/src/*/Infrastructure/Persistence/Migrations`.
 - [Postman](docs/postman/) — colección de la API (Collection v2.1, importable directo).
 - [OpenAPI](docs/openapi.json) — spec OpenAPI 3.1 generada con [Scramble](https://scramble.dedoc.co/) (`composer openapi`). Con el backend en marcha, Swagger UI en `/docs/api` y el documento en `/docs/api.json`.

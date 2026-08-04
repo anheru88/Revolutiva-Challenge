@@ -3,7 +3,7 @@
 --
 -- Generado con un dump del esquema producido por las migraciones de Laravel:
 --   docker compose exec db mariadb-dump --no-data payin <tablas> -upayin -psecret
--- Fuente de verdad: backend/database/migrations.
+-- Fuente de verdad: backend/src/*/Infrastructure/Persistence/Migrations.
 -- =============================================================================
 
 CREATE TABLE `customers` (
