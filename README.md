@@ -9,6 +9,8 @@ Componente reusable para el procesamiento de transacciones **PayIn**, construido
 ├── docs/
 │   ├── PRD.md                 # Product Requirements Document
 │   ├── ADR.md                 # Architecture Decision Records (ADR-001..009)
+│   ├── schema.sql             # Script SQL del modelo normalizado (dump)
+│   ├── openapi.json           # Spec OpenAPI 3.1 (Scramble)
 │   ├── postman/               # Colección Postman
 │   └── diagrams/              # Diagramas en Markdown (Mermaid)
 │       ├── architecture.md
@@ -166,6 +168,6 @@ Herramientas: **Pest**, **Laravel Pint**, **PHPStan/Larastan** y **GitHub Action
 - [PRD](docs/PRD.md) — requisitos del producto.
 - [ADR](docs/ADR.md) — decisiones arquitectónicas.
 - [Diagramas](docs/diagrams/) — arquitectura, secuencia, ER y dominio.
-- Esquema relacional — definido en `backend/database/migrations` (generable con `php artisan schema:dump`).
+- [schema.sql](docs/schema.sql) — script SQL del modelo normalizado, generado con un dump del esquema producido por las migraciones (`mariadb-dump --no-data`). Fuente de verdad: `backend/database/migrations`.
 - [Postman](docs/postman/) — colección de la API (Collection v2.1, importable directo).
 - [OpenAPI](docs/openapi.json) — spec OpenAPI 3.1 generada con [Scramble](https://scramble.dedoc.co/) (`composer openapi`). Con el backend en marcha, Swagger UI en `/docs/api` y el documento en `/docs/api.json`.

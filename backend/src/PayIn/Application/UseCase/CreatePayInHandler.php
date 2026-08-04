@@ -57,7 +57,11 @@ final class CreatePayInHandler
 
         $this->assertBusinessRules($customer->id(), $account, $paymentMethod);
 
-        // Estado CREATED.
+        // Se resuelve el adaptador antes de persistir para no dejar registros
+        // huérfanos si el proveedor no tiene adaptador registrado.
+        $adapter = $this->providerResolver->resolve($provider->code());
+
+        // Estado CREATED → VALIDATED (reglas de negocio superadas).
         $payIn = PayIn::create(
             uuid: Uuid::random(),
             customerId: (int) $customer->id(),
@@ -66,12 +70,15 @@ final class CreatePayInHandler
             paymentProviderId: (int) $provider->id(),
             amount: Money::of($command->amount, $command->currency),
         );
-
-        // Reglas de negocio superadas → VALIDATED.
         $payIn->markValidated();
 
-        // Procesamiento con el proveedor resuelto (fuera de la transacción, ADR-009).
-        $adapter = $this->providerResolver->resolve($provider->code());
+        // El orquestador PERSISTE en base de datos ANTES de enviar la transacción
+        // al proveedor. Escritura atómica (PayIn + historial CREATED/VALIDATED).
+        $this->transaction->transactional(function () use ($payIn): void {
+            $this->payIns->save($payIn);
+        });
+
+        // Envío al proveedor, FUERA de la transacción (ADR-009).
         $result = $adapter->process($payIn);
 
         if ($result->successful) {
@@ -80,7 +87,7 @@ final class CreatePayInHandler
             $payIn->markFailed($result->request, $result->response);
         }
 
-        // Persistencia atómica (PayIn + historial de estados).
+        // Actualización atómica del estado final + historial (PROCESSED/FAILED).
         $this->transaction->transactional(function () use ($payIn): void {
             $this->payIns->save($payIn);
         });

@@ -17,16 +17,21 @@ sequenceDiagram
     Ctrl->>UC: execute(dto)
 
     UC->>UC: validar reglas de negocio
-    UC->>UC: crear PayIn con estado CREATED
-
-    rect rgb(235, 245, 255)
-    note over UC,Repo: Transacción de base de datos
-    UC->>Repo: save(payIn)
     UC->>Res: resolve(provider_code)
     Res-->>UC: ProviderAdapter
+    UC->>UC: crear PayIn (CREATED → VALIDATED)
+
+    rect rgb(235, 245, 255)
+    note over UC,Repo: Persistir ANTES de enviar al proveedor (tx atómica)
+    UC->>Repo: save(payIn) + historial CREATED/VALIDATED
+    end
+
     UC->>Adp: process(payIn)
     Adp-->>UC: provider_request / provider_response
     UC->>UC: transición → PROCESSED | FAILED
+
+    rect rgb(235, 245, 255)
+    note over UC,Repo: Actualizar estado final (tx atómica)
     UC->>Repo: update(payIn) + append status history
     end
 
@@ -36,5 +41,5 @@ sequenceDiagram
 
 **Notas:**
 - La validación de formato ocurre en el `FormRequest`; las reglas de negocio, en el dominio.
-- El bloque resaltado es atómico (ver [ADR-009](../ADR.md#adr-009---operaciones-transaccionales)).
+- **El orquestador persiste el PayIn (CREATED/VALIDATED) antes de enviar la transacción al proveedor.** Cada escritura es atómica (ver [ADR-009](../ADR.md#adr-009---operaciones-transaccionales)); la llamada al proveedor queda **fuera** de la transacción.
 - Un fallo del proveedor lleva la transacción a `FAILED`, registrando igualmente `provider_response` y el historial.

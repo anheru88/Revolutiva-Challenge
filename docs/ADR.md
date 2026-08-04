@@ -299,15 +299,15 @@ Accepted
 
 ## Contexto
 
-Crear el PayIn, actualizar su estado y registrar el historial deben ocurrir de forma atómica para evitar estados inconsistentes.
+Crear el PayIn, actualizar su estado y registrar el historial deben ocurrir de forma atómica para evitar estados inconsistentes. Además, el orquestador debe **persistir la transacción antes de enviarla al proveedor**.
 
 ## Decisión
 
-Las escrituras del caso de uso se envolverán en una transacción de base de datos.
+El caso de uso realiza **dos escrituras atómicas**: (1) persiste el PayIn en estado `VALIDATED` (con su historial `CREATED`/`VALIDATED`) **antes** de invocar al proveedor, y (2) tras la respuesta del proveedor, actualiza el estado final (`PROCESSED`/`FAILED`) y su historial. La llamada al proveedor ocurre **entre** ambas escrituras, fuera de cualquier transacción.
 
 ## Justificación
 
-La atomicidad garantiza que un fallo parcial no deje la transacción en un estado intermedio inconsistente.
+Persistir antes de enviar al proveedor garantiza que siempre exista un registro auditable de la transacción, incluso si el proveedor falla o no responde. Envolver cada escritura en una transacción evita estados intermedios inconsistentes, y mantener la llamada externa fuera de la transacción evita bloquear conexiones de base de datos durante la latencia del proveedor.
 
 ## Consecuencias
 
