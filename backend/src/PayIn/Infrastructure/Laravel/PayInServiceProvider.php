@@ -21,8 +21,6 @@ use Src\PayIn\Infrastructure\Persistence\Eloquent\Repository\EloquentPaymentMeth
 use Src\PayIn\Infrastructure\Persistence\Eloquent\Repository\EloquentPaymentProviderRepository;
 use Src\PayIn\Infrastructure\Provider\FakeProviderAAdapter;
 use Src\PayIn\Infrastructure\Provider\FakeProviderBAdapter;
-use Src\Shared\Application\TransactionManager;
-use Src\Shared\Infrastructure\Laravel\LaravelTransactionManager;
 
 final class PayInServiceProvider extends ServiceProvider
 {
@@ -42,18 +40,17 @@ final class PayInServiceProvider extends ServiceProvider
             $this->app->bind($port, $adapter);
         }
 
-        $this->app->bind(
-            TransactionManager::class,
-            static fn (Application $app): LaravelTransactionManager => new LaravelTransactionManager(
-                $app->make('db')->connection(),
-            ),
-        );
-
         $this->app->singleton(ProviderResolver::class, static function (Application $app): ProviderResolver {
             return new ProviderResolver([
                 $app->make(FakeProviderAAdapter::class),
                 $app->make(FakeProviderBAdapter::class),
             ]);
         });
+    }
+
+    public function boot(): void
+    {
+        // El módulo es auto-contenido: sus migraciones viajan con él.
+        $this->loadMigrationsFrom(__DIR__.'/../Persistence/Migrations');
     }
 }

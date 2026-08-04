@@ -1,0 +1,30 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "revolutiva/payin",
+    "description": "Módulo PayIn — dominio, casos de uso y adaptadores (Arquitectura Hexagonal).",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^13.8",
+        "ramsey/uuid": "^4.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Src\\": ""
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Src\\Shared\\Infrastructure\\Laravel\\SharedServiceProvider",
+                "Src\\PayIn\\Infrastructure\\Laravel\\PayInServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

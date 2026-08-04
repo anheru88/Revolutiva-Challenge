@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b6f2db845949e4c631ee0475bb0b0a4e",
+    "content-hash": "438fc471e1d1bad82d3edd780cba067a",
     "packages": [
         {
             "name": "brick/math",
@@ -136,16 +136,16 @@
         },
         {
             "name": "dedoc/scramble",
-            "version": "v0.13.37",
+            "version": "v0.13.38",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dedoc/scramble.git",
-                "reference": "c592222066c5ef8107b19b0f91ed3d86fcabf497"
+                "reference": "9ed00087795d026da56037f9ff6ff29f32d710e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dedoc/scramble/zipball/c592222066c5ef8107b19b0f91ed3d86fcabf497",
-                "reference": "c592222066c5ef8107b19b0f91ed3d86fcabf497",
+                "url": "https://api.github.com/repos/dedoc/scramble/zipball/9ed00087795d026da56037f9ff6ff29f32d710e0",
+                "reference": "9ed00087795d026da56037f9ff6ff29f32d710e0",
                 "shasum": ""
             },
             "require": {
@@ -205,7 +205,7 @@
             ],
             "support": {
                 "issues": "https://github.com/dedoc/scramble/issues",
-                "source": "https://github.com/dedoc/scramble/tree/v0.13.37"
+                "source": "https://github.com/dedoc/scramble/tree/v0.13.38"
             },
             "funding": [
                 {
@@ -213,7 +213,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-02T11:54:35+00:00"
+            "time": "2026-08-04T19:22:40+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -1367,16 +1367,16 @@
         },
         {
             "name": "laravel/prompts",
-            "version": "v0.3.21",
+            "version": "v0.3.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/prompts.git",
-                "reference": "7753c65c281c2550c7c183f14e18062073b7d821"
+                "reference": "02b89b39e8972a998db4d5d4ad4719239dd4aee4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/prompts/zipball/7753c65c281c2550c7c183f14e18062073b7d821",
-                "reference": "7753c65c281c2550c7c183f14e18062073b7d821",
+                "url": "https://api.github.com/repos/laravel/prompts/zipball/02b89b39e8972a998db4d5d4ad4719239dd4aee4",
+                "reference": "02b89b39e8972a998db4d5d4ad4719239dd4aee4",
                 "shasum": ""
             },
             "require": {
@@ -1420,9 +1420,9 @@
             "description": "Add beautiful and user-friendly forms to your command-line applications.",
             "support": {
                 "issues": "https://github.com/laravel/prompts/issues",
-                "source": "https://github.com/laravel/prompts/tree/v0.3.21"
+                "source": "https://github.com/laravel/prompts/tree/v0.3.22"
             },
-            "time": "2026-06-26T00:11:25+00:00"
+            "time": "2026-08-04T14:50:50+00:00"
         },
         {
             "name": "laravel/serializable-closure",
@@ -3493,6 +3493,42 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.3"
             },
             "time": "2026-06-18T03:57:49+00:00"
+        },
+        {
+            "name": "revolutiva/payin",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "src",
+                "reference": "82d33fa805b29b5b2e25bad0434fdd123c187a7a"
+            },
+            "require": {
+                "laravel/framework": "^13.8",
+                "php": "^8.3",
+                "ramsey/uuid": "^4.7"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Src\\Shared\\Infrastructure\\Laravel\\SharedServiceProvider",
+                        "Src\\PayIn\\Infrastructure\\Laravel\\PayInServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Src\\": ""
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Módulo PayIn — dominio, casos de uso y adaptadores (Arquitectura Hexagonal).",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "spatie/laravel-package-tools",
@@ -9952,7 +9988,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "revolutiva/payin": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

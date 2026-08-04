@@ -4,6 +4,9 @@
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
+# El módulo es un paquete Composer local (repositories.path → src), así que su
+# código debe existir ya en esta etapa: se instala como symlink en vendor/.
+COPY src ./src
 # Los scripts ejecutan artisan, que necesita la app completa: se difieren a
 # runtime. Sin dev-deps (Pint, PHPStan, etc.) en la imagen de producción.
 RUN composer install \

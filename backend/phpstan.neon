@@ -7,4 +7,9 @@ parameters:
         - src
         - routes
         - database/seeders
+    # Las pruebas viven en src/<Modulo>/Tests; el DSL de Pest no es analizable
+    # de forma estática sin el plugin, así que se excluyen (como antes con tests/).
+    excludePaths:
+        analyseAndScan:
+            - src/*/Tests/*
     tmpDir: build/phpstan
