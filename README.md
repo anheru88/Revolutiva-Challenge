@@ -143,11 +143,8 @@ php artisan serve             # http://localhost:8000
 Por defecto usa SQLite; ajusta las variables `DB_*` en `.env` para otra base.
 
 El esquema relacional se define en las migraciones (`backend/database/migrations`),
-que son la única fuente de verdad. Para obtener un volcado SQL a partir de ellas:
-
-```bash
-php artisan schema:dump       # genera database/schema/<conexión>-schema.sql
-```
+que son la única fuente de verdad. El script SQL del modelo normalizado ya está
+versionado en [`docs/schema.sql`](docs/schema.sql) (generado con un dump).
 
 ## Decisiones arquitectónicas
 
