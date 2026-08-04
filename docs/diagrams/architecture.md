@@ -1,0 +1,55 @@
+# Diagrama de Arquitectura — Hexagonal (Ports & Adapters)
+
+El dominio no depende de Laravel ni de infraestructura. Los adaptadores de entrada (API) invocan los casos de uso de la capa de Aplicación; los adaptadores de salida (persistencia y proveedores) implementan los puertos definidos por la Aplicación.
+
+```mermaid
+flowchart LR
+    subgraph IN["Infrastructure — Driving (Inbound)"]
+        API["API REST v1<br/>PayInController<br/>FormRequests<br/>POST /api/v1/pay-ins<br/>GET /api/v1/pay-ins/{uuid}"]
+    end
+
+    subgraph APP["Application"]
+        UC["Casos de uso<br/>CreatePayIn · GetPayIn"]
+        PORTS["Puertos (interfaces)<br/>PayInRepositoryPort<br/>PaymentProviderPort"]
+        RES["ProviderResolver<br/>(Factory + Strategy)"]
+        DTO["DTOs"]
+    end
+
+    subgraph DOM["Domain (PHP puro)"]
+        ENT["Entidades<br/>PayIn · Customer · Account<br/>PaymentMethod · PaymentProvider"]
+        VO["Value Objects<br/>Money · Email · UUID"]
+        ST["PayInStatus<br/>CREATED/VALIDATED/PROCESSED/FAILED"]
+    end
+
+    subgraph OUT["Infrastructure — Driven (Outbound)"]
+        REPO["PayInRepository<br/>(Eloquent + Mappers)"]
+        ADPA["ProviderAdapter A<br/>(simulado)"]
+        ADPB["ProviderAdapter B<br/>(simulado)"]
+    end
+
+    SHARED["Shared<br/>VO base · excepciones · contratos comunes"]
+
+    API --> UC
+    UC --> ENT
+    UC --> PORTS
+    UC --> RES
+    RES --> ADPA
+    RES --> ADPB
+    REPO -. implements .-> PORTS
+    ADPA -. implements .-> PORTS
+    ADPB -. implements .-> PORTS
+
+    DOM -. usa .- SHARED
+    APP -. usa .- SHARED
+
+    classDef domain fill:#d5e8d4,stroke:#82b366;
+    classDef app fill:#dae8fc,stroke:#6c8ebf;
+    classDef infra fill:#ffe6cc,stroke:#d79b00;
+    classDef shared fill:#f8cecc,stroke:#b85450;
+    class ENT,VO,ST domain;
+    class UC,PORTS,RES,DTO app;
+    class API,REPO,ADPA,ADPB infra;
+    class SHARED shared;
+```
+
+**Regla de dependencias:** las flechas de infraestructura apuntan *hacia adentro*. `Infrastructure → Application → Domain`. El dominio no conoce a nadie fuera de sí mismo.

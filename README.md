@@ -9,11 +9,11 @@ Componente reusable para el procesamiento de transacciones **PayIn**, construido
 ├── docs/
 │   ├── PRD.md                 # Product Requirements Document
 │   ├── ADR.md                 # Architecture Decision Records
-│   └── diagrams/              # Diagramas (draw.io / diagrams.net)
-│       ├── architecture.drawio
-│       ├── sequence.drawio
-│       ├── er.drawio
-│       └── domain.drawio
+│   └── diagrams/              # Diagramas en Markdown (Mermaid)
+│       ├── architecture.md
+│       ├── sequence.md
+│       ├── er.md
+│       └── domain.md
 ├── backend/                   # Aplicación Laravel (API REST v1)
 └── README.md
 ```
