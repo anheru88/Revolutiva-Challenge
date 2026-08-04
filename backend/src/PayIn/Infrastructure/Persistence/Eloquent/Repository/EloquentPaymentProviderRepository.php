@@ -17,4 +17,11 @@ final class EloquentPaymentProviderRepository implements PaymentProviderReposito
 
         return $model !== null ? PaymentProviderMapper::toDomain($model) : null;
     }
+
+    public function findById(int $id): ?PaymentProvider
+    {
+        $model = PaymentProviderModel::query()->find($id);
+
+        return $model !== null ? PaymentProviderMapper::toDomain($model) : null;
+    }
 }

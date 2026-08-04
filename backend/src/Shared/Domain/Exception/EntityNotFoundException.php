@@ -19,4 +19,9 @@ final class EntityNotFoundException extends DomainException
     {
         return new self(sprintf('%s with code [%s] was not found.', $entity, $code));
     }
+
+    public static function withId(string $entity, int $id): self
+    {
+        return new self(sprintf('%s with id [%d] was not found.', $entity, $id));
+    }
 }
