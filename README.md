@@ -149,9 +149,54 @@ que son la única fuente de verdad. Para obtener un volcado SQL a partir de ella
 php artisan schema:dump       # genera database/schema/<conexión>-schema.sql
 ```
 
-## Testing y calidad
+## Decisiones arquitectónicas
 
-Cobertura objetivo: **80%** (exigida como gate en CI).
+Resumen — el detalle y la justificación de cada una está en [`docs/ADR.md`](docs/ADR.md):
+
+- **Arquitectura Hexagonal** con el dominio en PHP puro, aislado de Laravel ([ADR-001](docs/ADR.md#adr-001---arquitectura-hexagonal), [ADR-002](docs/ADR.md#adr-002---dominio-desacoplado-de-laravel)).
+- **Selección de proveedor** con `ProviderResolver`; incorporar uno nuevo = añadir un adaptador ([ADR-003](docs/ADR.md#adr-003---selección-de-proveedor-mediante-providerresolver)).
+- **Persistir antes de enviar al proveedor**: dos escrituras atómicas con la llamada externa entre ambas ([ADR-009](docs/ADR.md#adr-009---operaciones-transaccionales)).
+- **Procesamiento síncrono** con diseño listo para migrar a colas ([ADR-004](docs/ADR.md#adr-004---procesamiento-síncrono-con-diseño-listo-para-asíncrono)).
+- **Identificadores duales** `id` interno + `uuid` público ([ADR-005](docs/ADR.md#adr-005---identificadores-duales-id-interno--uuid-público)).
+- **Auditoría** de request/response del proveedor + historial de estados ([ADR-006](docs/ADR.md#adr-006---auditoría-de-proveedor-e-historial-de-estados)).
+- **Máquina de estados** validada en el dominio ([ADR-007](docs/ADR.md#adr-007---máquina-de-estados-de-payin)).
+- **API versionada y snake_case** ([ADR-008](docs/ADR.md#adr-008---api-rest-versionada-y-snake_case)).
+
+## Patrones de diseño aplicados
+
+| Patrón | Dónde |
+| --- | --- |
+| Repository | Puertos `*Repository` (Domain) + implementaciones Eloquent (Infrastructure) |
+| Strategy | `PaymentProviderPort` — cada adaptador es una estrategia de proveedor |
+| Factory | `ProviderResolver` selecciona el adaptador según el código |
+| Adapter | `FakeProviderAAdapter` / `FakeProviderBAdapter` (un adaptador ≈ microservicio del proveedor) |
+| DTO | `CreatePayInCommand`, `PayInResponse` |
+| Value Object | `Money`, `Email`, `Uuid`, `StatusTransition` |
+| Dependency Injection | Bindings puerto→adaptador en `PayInServiceProvider` |
+| Mapper | `*Mapper` traduce Eloquent ↔ entidades de dominio |
+
+Referencia completa en [PRD §11](docs/PRD.md).
+
+## Integración continua (CI)
+
+Herramienta: **GitHub Actions** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). En cada push y pull request corre, en un job:
+
+1. **Pint** (`--test`) — estilo de código (PSR-12).
+2. **PHPStan/Larastan** (nivel 6) — análisis estático.
+3. **Pest** con cobertura y **gate `--min=80`** (bloquea si baja del 80%).
+
+Modelo: pipeline de validación por PR (lint → análisis estático → pruebas) que impide el merge si algo falla. Es directamente extensible con etapas de build de la imagen Docker y despliegue.
+
+## Calidad del código
+
+Cómo se garantiza y con qué métodos/herramientas:
+
+- **Pruebas** (Pest): unitarias de dominio (PHP puro, sin arrancar el framework) + feature de API y repositorio. Cobertura **96%** (gate del 80% exigido en CI).
+- **Análisis estático**: PHPStan/Larastan **nivel 6**.
+- **Estilo consistente**: Laravel Pint.
+- **Diseño testeable**: dominio desacoplado → pruebas rápidas sin base de datos; puertos fácilmente sustituibles por dobles de prueba.
+- **Prácticas**: `declare(strict_types=1)`, Value Objects inmutables, clases `final` por defecto, tipado explícito.
+- **CI** como control obligatorio antes del merge.
 
 ```bash
 cd backend
@@ -161,13 +206,19 @@ composer analyse     # PHPStan / Larastan (nivel 6)
 composer check       # lint + analyse + test
 ```
 
-Herramientas: **Pest**, **Laravel Pint**, **PHPStan/Larastan** y **GitHub Actions** (`.github/workflows/ci.yml`).
+## Suposiciones
+
+Detalle en [PRD §16](docs/PRD.md). En resumen: el proveedor se indica en el request; no hay integraciones reales (adaptadores simulados); todas las operaciones son transaccionales; sin reintentos automáticos; sin autenticación ni autorización.
+
+## Riesgos
+
+Detalle en [PRD §17](docs/PRD.md). En resumen: cambios futuros en los contratos de los proveedores; reglas de negocio aún por definir; el procesamiento asíncrono queda fuera de alcance; las integraciones reales requerirían nuevos adaptadores.
 
 ## Documentación
 
-- [PRD](docs/PRD.md) — requisitos del producto.
-- [ADR](docs/ADR.md) — decisiones arquitectónicas.
-- [Diagramas](docs/diagrams/) — arquitectura, secuencia, ER y dominio.
+- [PRD](docs/PRD.md) — requisitos del producto, suposiciones y riesgos.
+- [ADR](docs/ADR.md) — decisiones arquitectónicas (ADR-001..009).
+- [Diagramas](docs/diagrams/) — componente/arquitectura, secuencia, ER y dominio.
 - [schema.sql](docs/schema.sql) — script SQL del modelo normalizado, generado con un dump del esquema producido por las migraciones (`mariadb-dump --no-data`). Fuente de verdad: `backend/database/migrations`.
 - [Postman](docs/postman/) — colección de la API (Collection v2.1, importable directo).
 - [OpenAPI](docs/openapi.json) — spec OpenAPI 3.1 generada con [Scramble](https://scramble.dedoc.co/) (`composer openapi`). Con el backend en marcha, Swagger UI en `/docs/api` y el documento en `/docs/api.json`.
