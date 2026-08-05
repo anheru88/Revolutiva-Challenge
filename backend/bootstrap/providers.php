@@ -1,10 +1,6 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-
-// Los providers del módulo (SharedServiceProvider, PayInServiceProvider) los
-// registra el propio paquete `revolutiva/payin` vía package discovery
-// (src/composer.json → extra.laravel.providers).
-return [
-    AppServiceProvider::class,
-];
+// La aplicación no aporta providers propios: los del módulo los registra el
+// paquete `revolutiva/payin` vía package discovery (src/composer.json →
+// extra.laravel.providers).
+return [];

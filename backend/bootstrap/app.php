@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Src\Shared\Domain\Exception\DomainException;
 use Src\Shared\Domain\Exception\EntityNotFoundException;
 use Src\Shared\Domain\Exception\InvalidArgumentException;
@@ -18,6 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         //
+    })
+    ->booted(function (): void {
+        // Scramble restringe la documentación al entorno `local`. Este componente
+        // de demostración la expone también fuera de local (el contenedor corre
+        // como `production`), de ahí el gate abierto.
+        Gate::define('viewApiDocs', fn ($user = null): bool => true);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
