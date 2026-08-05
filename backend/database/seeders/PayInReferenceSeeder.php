@@ -19,6 +19,11 @@ final class PayInReferenceSeeder extends Seeder
 
     public const PAYMENT_METHOD_UUID = '33333333-3333-4333-8333-333333333333';
 
+    /** Segundo cliente con cuenta propia: sirve para probar la regla de pertenencia. */
+    public const OTHER_CUSTOMER_UUID = '44444444-4444-4444-8444-444444444444';
+
+    public const OTHER_ACCOUNT_UUID = '55555555-5555-4555-8555-555555555555';
+
     public function run(): void
     {
         $customerId = DB::table('customers')->insertGetId([
@@ -37,6 +42,18 @@ final class PayInReferenceSeeder extends Seeder
             'uuid' => self::PAYMENT_METHOD_UUID,
             'account_id' => $accountId,
             'type' => 'card',
+        ]);
+
+        $otherCustomerId = DB::table('customers')->insertGetId([
+            'uuid' => self::OTHER_CUSTOMER_UUID,
+            'name' => 'Other Corp',
+            'email' => 'billing@other.test',
+        ]);
+
+        DB::table('accounts')->insert([
+            'uuid' => self::OTHER_ACCOUNT_UUID,
+            'customer_id' => $otherCustomerId,
+            'account_number' => 'ACC-9999',
         ]);
 
         DB::table('payment_providers')->insert([

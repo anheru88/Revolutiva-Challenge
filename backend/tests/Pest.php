@@ -14,4 +14,5 @@ use Src\Shared\Tests\TestCase;
 // Las de Unit (dominio/aplicación) son PHP puro y no arrancan el framework.
 uses(TestCase::class, RefreshDatabase::class)->in(
     __DIR__.'/../src/PayIn/Tests/Feature',
+    __DIR__.'/../src/Shared/Tests/Feature',
 );

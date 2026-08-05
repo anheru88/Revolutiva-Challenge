@@ -88,22 +88,57 @@ it('returns 404 for an unknown provider code', function (): void {
     ]))->assertNotFound();
 });
 
+it('returns 404 for an unknown account', function (): void {
+    $this->postJson('/api/v1/pay-ins', validPayload([
+        'account_uuid' => '99999999-9999-4999-8999-999999999999',
+    ]))->assertNotFound();
+});
+
+it('returns 404 for an unknown payment method', function (): void {
+    $this->postJson('/api/v1/pay-ins', validPayload([
+        'payment_method_uuid' => '99999999-9999-4999-8999-999999999999',
+    ]))->assertNotFound();
+});
+
+it('approves an amount within provider_b limit', function (): void {
+    $this->postJson('/api/v1/pay-ins', validPayload([
+        'provider_code' => 'provider_b',
+        'amount' => 15000,
+    ]))
+        ->assertCreated()
+        ->assertJsonPath('data.status', 'PROCESSED')
+        ->assertJsonPath('data.provider_response.status', 'approved');
+});
+
 it('rejects an account that does not belong to the customer', function (): void {
-    // A second customer with its own account, unrelated to the seeded customer.
-    $otherCustomerId = DB::table('customers')->insertGetId([
-        'uuid' => '44444444-4444-4444-8444-444444444444',
-        'name' => 'Other Corp',
-        'email' => 'other@corp.test',
-    ]);
-    $otherAccountUuid = '55555555-5555-4555-8555-555555555555';
-    DB::table('accounts')->insert([
-        'uuid' => $otherAccountUuid,
-        'customer_id' => $otherCustomerId,
-        'account_number' => 'ACC-9999',
+    // El seeder trae un segundo cliente con cuenta propia: cliente sembrado +
+    // cuenta ajena -> violación de regla de negocio (422).
+    $this->postJson('/api/v1/pay-ins', validPayload([
+        'account_uuid' => PayInReferenceSeeder::OTHER_ACCOUNT_UUID,
+    ]))->assertStatus(422);
+});
+
+it('rejects a payment method that does not belong to the account', function (): void {
+    // A second account of the same seeded customer, with its own payment method.
+    $customerId = DB::table('customers')
+        ->where('uuid', PayInReferenceSeeder::CUSTOMER_UUID)
+        ->value('id');
+
+    $otherAccountId = DB::table('accounts')->insertGetId([
+        'uuid' => '66666666-6666-4666-8666-666666666666',
+        'customer_id' => $customerId,
+        'account_number' => 'ACC-0002',
     ]);
 
-    // Seeded customer + foreign account -> business rule violation (422).
+    $foreignMethodUuid = '77777777-7777-4777-8777-777777777777';
+    DB::table('payment_methods')->insert([
+        'uuid' => $foreignMethodUuid,
+        'account_id' => $otherAccountId,
+        'type' => 'card',
+    ]);
+
+    // Seeded account + payment method of another account -> 422.
     $this->postJson('/api/v1/pay-ins', validPayload([
-        'account_uuid' => $otherAccountUuid,
+        'payment_method_uuid' => $foreignMethodUuid,
     ]))->assertStatus(422);
 });

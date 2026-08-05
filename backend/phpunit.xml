@@ -15,7 +15,6 @@
     </testsuites>
     <source>
         <include>
-            <directory>app</directory>
             <directory>src</directory>
         </include>
         <exclude>
@@ -25,6 +24,9 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- Clave fija de pruebas: la suite no depende de que exista un .env
+             con APP_KEY generada (las rutas de la documentación la necesitan). -->
+        <env name="APP_KEY" value="base64:qLbTMLbeVOr9uCVGrYPT8I3xhE2xTcnQKGpMCwyy5NQ="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>

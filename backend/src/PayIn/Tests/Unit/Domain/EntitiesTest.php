@@ -21,9 +21,11 @@ it('exposes customer attributes', function (): void {
 });
 
 it('knows whether an account belongs to a customer', function (): void {
-    $account = new Account(5, Uuid::random(), 1, 'ACC-0001');
+    $uuid = Uuid::random();
+    $account = new Account(5, $uuid, 1, 'ACC-0001');
 
     expect($account->id())->toBe(5)
+        ->and($account->uuid()->equals($uuid))->toBeTrue()
         ->and($account->customerId())->toBe(1)
         ->and($account->accountNumber())->toBe('ACC-0001')
         ->and($account->belongsToCustomer(1))->toBeTrue()
@@ -31,9 +33,11 @@ it('knows whether an account belongs to a customer', function (): void {
 });
 
 it('knows whether a payment method belongs to an account', function (): void {
-    $method = new PaymentMethod(7, Uuid::random(), 5, 'card');
+    $uuid = Uuid::random();
+    $method = new PaymentMethod(7, $uuid, 5, 'card');
 
     expect($method->id())->toBe(7)
+        ->and($method->uuid()->equals($uuid))->toBeTrue()
         ->and($method->accountId())->toBe(5)
         ->and($method->type())->toBe('card')
         ->and($method->belongsToAccount(5))->toBeTrue()

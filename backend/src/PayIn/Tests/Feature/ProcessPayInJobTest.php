@@ -5,49 +5,19 @@ declare(strict_types=1);
 use Database\Seeders\PayInReferenceSeeder;
 use Illuminate\Support\Facades\DB;
 use Src\PayIn\Application\UseCase\ProcessPayInHandler;
-use Src\PayIn\Domain\Entity\PayIn;
-use Src\PayIn\Domain\Factory\PayInFactory;
-use Src\PayIn\Domain\Repository\AccountRepository;
-use Src\PayIn\Domain\Repository\CustomerRepository;
-use Src\PayIn\Domain\Repository\PayInRepository;
-use Src\PayIn\Domain\Repository\PaymentMethodRepository;
+use Src\PayIn\Domain\Entity\PaymentProvider;
 use Src\PayIn\Domain\Repository\PaymentProviderRepository;
 use Src\PayIn\Infrastructure\Laravel\Job\ProcessPayInJob;
+use Src\PayIn\Tests\Support\PayInBuilder;
 use Src\Shared\Domain\Exception\EntityNotFoundException;
-use Src\Shared\Domain\ValueObject\Money;
 use Src\Shared\Domain\ValueObject\Uuid;
 
 beforeEach(function (): void {
     $this->seed(PayInReferenceSeeder::class);
 });
 
-/**
- * Deja un PayIn persistido en VALIDATED, tal como lo hace CreatePayInHandler
- * justo antes del paso de proveedor.
- */
-function validatedPayIn(string $providerCode = 'provider_a', int $amount = 15000): PayIn
-{
-    $customer = app(CustomerRepository::class)->findByUuid(new Uuid(PayInReferenceSeeder::CUSTOMER_UUID));
-    $account = app(AccountRepository::class)->findByUuid(new Uuid(PayInReferenceSeeder::ACCOUNT_UUID));
-    $paymentMethod = app(PaymentMethodRepository::class)->findByUuid(new Uuid(PayInReferenceSeeder::PAYMENT_METHOD_UUID));
-    $provider = app(PaymentProviderRepository::class)->findByCode($providerCode);
-
-    $payIn = (new PayInFactory)->forNewTransaction(
-        customer: $customer,
-        account: $account,
-        paymentMethod: $paymentMethod,
-        provider: $provider,
-        amount: Money::of($amount, 'USD'),
-    );
-    $payIn->markValidated();
-
-    app(PayInRepository::class)->save($payIn);
-
-    return $payIn;
-}
-
 it('processes a validated pay-in when the job is dispatched', function (): void {
-    $payIn = validatedPayIn();
+    $payIn = PayInBuilder::validated();
 
     ProcessPayInJob::dispatch($payIn->uuid()->value());
 
@@ -57,7 +27,7 @@ it('processes a validated pay-in when the job is dispatched', function (): void 
 
 it('records the failure when the provider declines from the job', function (): void {
     // provider_b rechaza importes por encima del límite simulado.
-    $payIn = validatedPayIn('provider_b', 2_000_000);
+    $payIn = PayInBuilder::validated('provider_b', 2_000_000);
 
     ProcessPayInJob::dispatch($payIn->uuid()->value());
 
@@ -66,7 +36,7 @@ it('records the failure when the provider declines from the job', function (): v
 });
 
 it('leaves a status history entry for the transition made by the job', function (): void {
-    $payIn = validatedPayIn();
+    $payIn = PayInBuilder::validated();
 
     ProcessPayInJob::dispatch($payIn->uuid()->value());
 
@@ -79,3 +49,25 @@ it('leaves a status history entry for the transition made by the job', function 
 it('fails when the pay-in does not exist', function (): void {
     app(ProcessPayInHandler::class)->handle(new Uuid('99999999-9999-4999-8999-999999999999'));
 })->throws(EntityNotFoundException::class);
+
+it('fails when the provider behind the pay-in is gone', function (): void {
+    $payIn = PayInBuilder::validated();
+
+    // El proveedor deja de estar disponible entre el encolado y la ejecución
+    // del job; el agregado ya persistido solo conserva su id interno. La clave
+    // ajena impide borrar la fila, así que se sustituye el repositorio.
+    $this->app->instance(PaymentProviderRepository::class, new class implements PaymentProviderRepository
+    {
+        public function findByCode(string $code): ?PaymentProvider
+        {
+            return null;
+        }
+
+        public function findById(int $id): ?PaymentProvider
+        {
+            return null;
+        }
+    });
+
+    app(ProcessPayInHandler::class)->handle($payIn->uuid());
+})->throws(EntityNotFoundException::class, 'PaymentProvider with id');
