@@ -13,7 +13,7 @@ Componente reusable para el procesamiento de transacciones **PayIn**, construido
 │   ├── openapi.json           # Spec OpenAPI 3.1 (Scramble)
 │   ├── tests.svg              # Salida real de la suite (Pest)
 │   ├── coverage.svg           # Salida real de la cobertura (Pest)
-│   ├── postman/               # Colección Postman
+│   ├── postman/               # Colección Postman (éxito + casos de error)
 │   └── diagrams/              # Diagramas en Markdown (Mermaid)
 │       ├── architecture.md
 │       ├── sequence.md
@@ -66,7 +66,7 @@ backend/src/
 
 **Migraciones y pruebas viven dentro del módulo**, no en `database/migrations` ni en `tests/`: cada módulo registra sus migraciones desde su propio ServiceProvider (`loadMigrationsFrom`). El único archivo de pruebas fuera de `src/` es `backend/tests/Pest.php`, el bootstrap que Pest exige en su directorio por defecto; las pruebas en sí están en `src/<Modulo>/Tests`.
 
-**Sin scaffolding de más:** el componente no incluye frontend, autenticación ni modelo `User` (PRD §3). Se retiraron Vite/Tailwind, las vistas, `routes/web.php` y las tablas `users`/`password_reset_tokens`; queda `sessions` porque el stack de Docker usa `SESSION_DRIVER=database`.
+**Sin scaffolding de más:** el componente no incluye frontend, autenticación ni modelo `User` (PRD §3). Se retiraron Vite/Tailwind, las vistas, `routes/web.php`, el directorio `app/` completo y las tablas `users`/`password_reset_tokens`; queda `sessions` porque el stack de Docker usa `SESSION_DRIVER=database`. Todo el código de la aplicación vive en `src/`.
 
 **Procesamiento síncrono, listo para cola:** el paso de proveedor es un caso de uso propio (`ProcessPayInHandler`) que recibe un UUID y recarga el agregado. `CreatePayInHandler` lo llama en línea; `ProcessPayInJob` es el mismo caso de uso despachado a una cola, así que pasar a asíncrono es cambiar una línea ([ADR-004](docs/ADR.md#adr-004---procesamiento-síncrono-con-diseño-listo-para-asíncrono)).
 
@@ -191,8 +191,8 @@ Resumen — el detalle y la justificación de cada una está en [`docs/ADR.md`](
 | Patrón | Dónde |
 | --- | --- |
 | Repository | Puertos `*Repository` (Domain) + implementaciones Eloquent (Infrastructure) |
-| Strategy | `PaymentProviderPort` — cada adaptador es una estrategia de proveedor |
-| Factory | `ProviderResolver` selecciona el adaptador según el código |
+| Strategy | `PaymentProviderPort` — cada adaptador es una estrategia de proveedor; `ProviderResolver` elige la estrategia según el código |
+| Factory | `PayInFactory` ensambla el agregado ([ADR-010](docs/ADR.md#adr-010---factory-del-agregado-payin)) |
 | Adapter | `FakeProviderAAdapter` / `FakeProviderBAdapter` (un adaptador ≈ microservicio del proveedor) |
 | DTO | `CreatePayInCommand`, `PayInResponse` |
 | Value Object | `Money`, `Email`, `Uuid`, `StatusTransition` |
@@ -215,7 +215,7 @@ Modelo: pipeline de validación por PR (lint → análisis estático → pruebas
 
 Cómo se garantiza y con qué métodos/herramientas:
 
-- **Pruebas** (Pest): unitarias de dominio (PHP puro, sin arrancar el framework) + feature de API y repositorio. Cobertura **96%** (gate del 80% exigido en CI).
+- **Pruebas** (Pest): unitarias de dominio (PHP puro, sin arrancar el framework) + feature de API y repositorio. Cobertura **100%** (gate del 80% exigido en CI).
 - **Análisis estático**: PHPStan/Larastan **nivel 6**.
 - **Estilo consistente**: Laravel Pint.
 - **Diseño testeable**: dominio desacoplado → pruebas rápidas sin base de datos; puertos fácilmente sustituibles por dobles de prueba.
@@ -233,7 +233,7 @@ composer check       # lint + analyse + test
 ![Salida de composer test](docs/tests.svg)
 
 <details>
-<summary><b>Cobertura por archivo</b> — <code>pest --coverage</code> (total 96.0%)</summary>
+<summary><b>Cobertura por archivo</b> — <code>pest --coverage</code> (total 100%)</summary>
 
 ![Cobertura por archivo](docs/coverage.svg)
 
@@ -255,5 +255,5 @@ Detalle en [PRD §17](docs/PRD.md). En resumen: cambios futuros en los contratos
 - [ADR](docs/ADR.md) — decisiones arquitectónicas (ADR-001..011).
 - [Diagramas](docs/diagrams/) — componente/arquitectura, secuencia, ER y dominio.
 - [schema.sql](docs/schema.sql) — script SQL del modelo normalizado, generado con un dump del esquema producido por las migraciones (`mariadb-dump --no-data`). Fuente de verdad: las migraciones dentro de `backend/src/*/Infrastructure/Persistence/Migrations`.
-- [Postman](docs/postman/) — colección de la API (Collection v2.1, importable directo).
+- [Postman](docs/postman/) — colección de la API (Collection v2.1, importable directo): caminos felices y los cinco casos de error (404 y 422), cada uno con sus asserts.
 - [OpenAPI](docs/openapi.json) — spec OpenAPI 3.1 generada con [Scramble](https://scramble.dedoc.co/) (`composer openapi`). Con el backend en marcha, Swagger UI en `/docs/api` y el documento en `/docs/api.json`.

@@ -46,13 +46,25 @@
             "request": {
                 "method": "POST",
                 "header": [
-                    { "key": "Accept", "value": "application/json" },
-                    { "key": "Content-Type", "value": "application/json" }
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
                 ],
                 "url": {
                     "raw": "{{base_url}}/api/v1/pay-ins",
-                    "host": ["{{base_url}}"],
-                    "path": ["api", "v1", "pay-ins"]
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "pay-ins"
+                    ]
                 },
                 "body": {
                     "mode": "raw",
@@ -65,13 +77,25 @@
             "request": {
                 "method": "POST",
                 "header": [
-                    { "key": "Accept", "value": "application/json" },
-                    { "key": "Content-Type", "value": "application/json" }
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
                 ],
                 "url": {
                     "raw": "{{base_url}}/api/v1/pay-ins",
-                    "host": ["{{base_url}}"],
-                    "path": ["api", "v1", "pay-ins"]
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "pay-ins"
+                    ]
                 },
                 "body": {
                     "mode": "raw",
@@ -84,14 +108,234 @@
             "request": {
                 "method": "GET",
                 "header": [
-                    { "key": "Accept", "value": "application/json" }
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
                 ],
                 "url": {
                     "raw": "{{base_url}}/api/v1/pay-ins/{{pay_in_uuid}}",
-                    "host": ["{{base_url}}"],
-                    "path": ["api", "v1", "pay-ins", "{{pay_in_uuid}}"]
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "pay-ins",
+                        "{{pay_in_uuid}}"
+                    ]
                 }
             }
+        },
+        {
+            "name": "Create PayIn · 404 unknown customer",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('status is 404', () => pm.response.to.have.status(404));",
+                            "pm.test('says which entity is missing', () => pm.expect(pm.response.json().message).to.include('Customer'));"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/v1/pay-ins",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "pay-ins"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"customer_uuid\": \"99999999-9999-4999-8999-999999999999\",\n    \"account_uuid\": \"{{account_uuid}}\",\n    \"payment_method_uuid\": \"{{payment_method_uuid}}\",\n    \"provider_code\": \"provider_a\",\n    \"amount\": 15000,\n    \"currency\": \"USD\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Create PayIn · 404 unknown provider code",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('status is 404', () => pm.response.to.have.status(404));",
+                            "pm.test('says which entity is missing', () => pm.expect(pm.response.json().message).to.include('PaymentProvider'));"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/v1/pay-ins",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "pay-ins"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"customer_uuid\": \"{{customer_uuid}}\",\n    \"account_uuid\": \"{{account_uuid}}\",\n    \"payment_method_uuid\": \"{{payment_method_uuid}}\",\n    \"provider_code\": \"provider_x\",\n    \"amount\": 15000,\n    \"currency\": \"USD\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Create PayIn · 422 validation error",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                            "pm.test('points at the invalid field', () => pm.expect(pm.response.json().errors).to.have.property('amount'));"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/v1/pay-ins",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "pay-ins"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"customer_uuid\": \"{{customer_uuid}}\",\n    \"account_uuid\": \"{{account_uuid}}\",\n    \"payment_method_uuid\": \"{{payment_method_uuid}}\",\n    \"provider_code\": \"provider_a\",\n    \"amount\": 0,\n    \"currency\": \"USD\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Create PayIn · 422 account not owned by customer",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "// account_uuid apunta a una cuenta que no pertenece al customer.",
+                            "// Créala en tu entorno si no existe; el seeder solo trae la cuenta del customer.",
+                            "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                            "pm.test('states the broken rule', () => pm.expect(pm.response.json().message).to.include('does not belong'));"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/v1/pay-ins",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "pay-ins"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"customer_uuid\": \"{{customer_uuid}}\",\n    \"account_uuid\": \"55555555-5555-4555-8555-555555555555\",\n    \"payment_method_uuid\": \"{{payment_method_uuid}}\",\n    \"provider_code\": \"provider_a\",\n    \"amount\": 15000,\n    \"currency\": \"USD\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Get PayIn · 404 unknown uuid",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/v1/pay-ins/99999999-9999-4999-8999-999999999999",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "pay-ins",
+                        "99999999-9999-4999-8999-999999999999"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('status is 404', () => pm.response.to.have.status(404));",
+                            "pm.test('says which entity is missing', () => pm.expect(pm.response.json().message).to.include('PayIn'));"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ]
         }
     ]
 }
